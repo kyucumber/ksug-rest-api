@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.Valid;
 import java.net.URI;
 
 @RestController
@@ -22,9 +23,21 @@ public class EventController {
     private ModelMapper modelMapper;
     @Autowired
     private EventRepository eventRepository;
+    @Autowired
+    private EventDtoValidator eventDtoValidator;
     @PostMapping
-    public ResponseEntity create(@RequestBody EventDto eventDto,
+    public ResponseEntity create(@RequestBody @Valid EventDto eventDto,
                                  Errors errors) {
+        if (errors.hasErrors()) {
+            return ResponseEntity.badRequest().body(errors);
+            //body에 Errors를 담아 리턴하지만 Java Bean 스펙이 준수되지 않아 Serialize 되지 않음.
+        }
+
+        eventDtoValidator.validate(eventDto, errors);
+        if (errors.hasErrors()) {
+            return ResponseEntity.badRequest().body(errors);
+        }
+
         Event event = modelMapper.map(eventDto, Event.class);
         Event savedEvent = eventRepository.save(event);
         URI uri = ControllerLinkBuilder.linkTo(EventController.class).slash(savedEvent.getId()).toUri();
