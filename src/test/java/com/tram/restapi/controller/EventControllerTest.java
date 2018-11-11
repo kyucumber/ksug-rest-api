@@ -8,6 +8,10 @@ import org.springframework.http.MediaType;
 
 import java.time.LocalDateTime;
 
+import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
+import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.links;
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
+import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -40,7 +44,17 @@ public class EventControllerTest extends ControllerTest {
                     .andExpect(header().exists("Location"))
                     .andExpect(jsonPath("free").value(false))
                     .andExpect(jsonPath("id").exists())
-                    .andExpect(jsonPath("eventStatus").value(EventStatus.DRAFT.name()));
+                    .andExpect(jsonPath("eventStatus").value(EventStatus.DRAFT.name()))
+                    .andDo(document("create-event",
+                        requestFields(
+                                fieldWithPath("name").description("name of the event"),
+                                fieldWithPath("description").description("description of the event")
+                        ),
+                        responseFields(
+                                fieldWithPath("id").description("identifier of the event"),
+                                fieldWithPath("name").description("name of the event")
+                        )
+                    ));
     }
 
     @Test
