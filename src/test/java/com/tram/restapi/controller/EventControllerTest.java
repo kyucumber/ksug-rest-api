@@ -31,7 +31,7 @@ public class EventControllerTest extends ControllerTest {
                 .beginEventDateTime(LocalDateTime.of(2018, 11, 4, 8, 0))
                 .endEventDateTime(LocalDateTime.of(2018, 11, 5, 8, 0))
                 .basePrice(0)
-                .maxPrice(0)
+                .maxPrice(1000)
                 .location("네이버 D2 팩토리 좁았음")
                 .limitOfEnrollment(100)
                 .build();
@@ -45,12 +45,23 @@ public class EventControllerTest extends ControllerTest {
                     .andExpect(jsonPath("free").value(false))
                     .andExpect(jsonPath("id").exists())
                     .andExpect(jsonPath("eventStatus").value(EventStatus.DRAFT.name()))
+                    .andExpect(jsonPath("_links").hasJsonPath())
+                    .andExpect(jsonPath("_links.self").hasJsonPath())
+                    .andExpect(jsonPath("_links.events").hasJsonPath())
+                    .andExpect(jsonPath("_links.update").hasJsonPath())
+                    .andExpect(jsonPath("_links.profile").hasJsonPath())
                     .andDo(document("create-event",
-                        requestFields(
+                        links(
+                            linkWithRel("self").description("link to self"),
+                            linkWithRel("events").description("link to events"),
+                            linkWithRel("update").description("link to update"),
+                            linkWithRel("profile").description("link to profile")
+                        ),
+                        relaxedRequestFields(
                                 fieldWithPath("name").description("name of the event"),
                                 fieldWithPath("description").description("description of the event")
                         ),
-                        responseFields(
+                        relaxedResponseFields(
                                 fieldWithPath("id").description("identifier of the event"),
                                 fieldWithPath("name").description("name of the event")
                         )
