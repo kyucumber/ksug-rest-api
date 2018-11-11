@@ -1,5 +1,6 @@
 package com.tram.restapi.controller;
 
+import com.tram.restapi.domain.ErrorResource;
 import com.tram.restapi.domain.Event;
 import com.tram.restapi.domain.EventRepository;
 import com.tram.restapi.domain.EventResource;
@@ -33,13 +34,13 @@ public class EventController {
     public ResponseEntity create(@RequestBody @Valid EventDto eventDto,
                                  Errors errors) {
         if (errors.hasErrors()) {
-            return ResponseEntity.badRequest().body(errors);
+            return ResponseEntity.badRequest().body(new ErrorResource(errors));
             //body에 Errors를 담아 리턴하지만 Java Bean 스펙이 준수되지 않아 Serialize 되지 않음.
         }
 
         eventDtoValidator.validate(eventDto, errors);
         if (errors.hasErrors()) {
-            return ResponseEntity.badRequest().body(errors);
+            return ResponseEntity.badRequest().body(new ErrorResource(errors));
         }
 
         Event event = modelMapper.map(eventDto, Event.class);
