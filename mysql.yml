@@ -1,0 +1,14 @@
+version: '2'
+services:
+  db:
+    image: mysql:5.7
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: example
+      MYSQL_USER: local
+      MYSQL_PASSWORD: local
+    ports:
+    - "3306:3306"
+    volumes:
+    - /tmp/mysql/my.cnf:/etc/mysql/my.cnf
