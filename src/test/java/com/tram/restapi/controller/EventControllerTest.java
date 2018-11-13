@@ -1,6 +1,5 @@
 package com.tram.restapi.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.tram.restapi.common.ControllerTest;
 import com.tram.restapi.domain.Event;
 import com.tram.restapi.domain.EventRepository;
@@ -130,5 +129,19 @@ public class EventControllerTest extends ControllerTest {
                 .name("test event" + index)
                 .build();
         return this.eventRepository.save(event);
+    }
+
+    @Test
+    public void getEvent404() throws Exception {
+        this.mockMvc.perform(get("/api/events/19843"))
+                .andExpect(status().isNotFound());
+    }
+    @Test
+    public void getEvent() throws Exception {
+        Event event = this.saveEvent(100);
+        this.mockMvc.perform(get("/api/events/" + event.getId()))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("name").hasJsonPath());
     }
 }

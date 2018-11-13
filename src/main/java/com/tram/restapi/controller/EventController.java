@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.net.URI;
+import java.util.Optional;
 
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 
@@ -67,5 +68,37 @@ public class EventController {
         Page<Event> page = this.eventRepository.findAll(pageable);
         PagedResources<EventResource> pagedResources = assembler.toResource(page, e -> new EventResource(e));
         return ResponseEntity.ok(pagedResources);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity getEvent(@PathVariable Long id) {
+        Optional<Event> byId = this.eventRepository.findById(id);
+        if (!byId.isPresent()) {
+            return ResponseEntity.notFound().build();
+        }
+        Event event = byId.get();
+        EventResource eventResource = new EventResource(event);
+        return ResponseEntity.ok(eventResource);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity updateEvent(@PathVariable Long id,
+                                      @RequestBody @Valid EventDto eventDto,
+                                      Errors errors) {
+        if (errors.hasErrors()) {
+            return ResponseEntity.badRequest().body(new ErrorResource(errors));
+        }
+        eventDtoValidator.validate(eventDto, errors);
+        if (errors.hasErrors()) {
+            return ResponseEntity.badRequest().body(new ErrorResource(errors));
+        }
+        Optional<Event> byId = this.eventRepository.findById(id);
+        if (!byId.isPresent()) {
+            return ResponseEntity.notFound().build();
+        }
+        Event existingEvent = byId.get();
+        modelMapper.map(eventDto, existingEvent);
+        Event updatedEvent = this.eventRepository.save(existingEvent);
+        return ResponseEntity.ok(new EventResource(updatedEvent));
     }
 }
