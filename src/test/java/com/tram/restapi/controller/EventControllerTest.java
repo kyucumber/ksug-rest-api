@@ -2,16 +2,21 @@ package com.tram.restapi.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.tram.restapi.common.ControllerTest;
+import com.tram.restapi.domain.Event;
+import com.tram.restapi.domain.EventRepository;
 import com.tram.restapi.domain.EventStatus;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 
 import java.time.LocalDateTime;
+import java.util.stream.IntStream;
 
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.links;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -21,6 +26,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 public class EventControllerTest extends ControllerTest {
 
+    @Autowired
+    private EventRepository eventRepository;
     @Test
     public void create() throws Exception {
         EventDto eventDto = EventDto.builder()
@@ -103,5 +110,25 @@ public class EventControllerTest extends ControllerTest {
                 .andExpect(jsonPath("$[0].rejectedValue").hasJsonPath())
                 .andExpect(jsonPath("$[0].defaultMessage").hasJsonPath())
                 .andExpect(jsonPath("$[0].objectName").hasJsonPath());
+    }
+
+    @Test
+    public void getEvents() throws Exception {
+        // Given
+        IntStream.range(0, 30).forEach(this::saveEvent);
+        // When & Then
+        this.mockMvc.perform(get("/api/events")
+                .param("size", "10")
+                .param("page", "1"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("_links").hasJsonPath());
+    }
+
+    private Event saveEvent(int index) {
+        Event event = Event.builder()
+                .name("test event" + index)
+                .build();
+        return this.eventRepository.save(event);
     }
 }
